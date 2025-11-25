@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "web/api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/web/api/index.js" },
+    { "src": "/privacy", "dest": "/web/api/index.js" },
+    { "src": "/terms", "dest": "/web/api/index.js" },
+    { "src": "/health", "dest": "/web/api/index.js" },
+    { "src": "/(.*)", "dest": "/web/api/index.js" }
+  ]
+}

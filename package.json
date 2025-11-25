@@ -4,24 +4,19 @@
   "description": "Shopify checkout extension that blocks discount codes during sale mode while preserving gift card functionality",
   "private": true,
   "scripts": {
+    "shopify": "shopify",
     "dev": "shopify app dev",
     "build": "shopify app build",
     "deploy": "shopify app deploy",
     "generate": "shopify app generate",
-    "info": "shopify app info",
-    "web": "cd web && npm run dev",
-    "web:install": "cd web && npm install"
+    "info": "shopify app info"
   },
   "author": "Mark Kelly",
   "license": "MIT",
-  "workspaces": [
-    "web",
-    "extensions/*"
-  ],
   "dependencies": {
-    "@shopify/cli": "^3.72.0"
+    "@shopify/cli": "^3.72.0",
+    "@shopify/app": "^3.72.0"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }
