@@ -1,0 +1,21 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "3b5caa35dcb3a4a4e847f8fad12fada3"
+name = "Sale Discount Lock"
+application_url = "https://code-block-wheat.vercel.app"
+embedded = true
+
+[webhooks]
+api_version = "2025-10"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_checkouts,read_checkouts"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [ "https://code-block-wheat.vercel.app/api/auth/callback" ]
+
+[pos]
+embedded = true

@@ -5,7 +5,7 @@ client_id = "" # Will be filled by shopify app deploy
 handle = "sale-discount-lock"
 
 # App URLs - Using Vercel deployment
-application_url = "https://code-block.vercel.app"
+application_url = "https://code-block-wheat.vercel.app"
 embedded = true
 
 [access_scopes]
@@ -14,7 +14,7 @@ scopes = "read_checkouts,write_checkouts"
 
 [auth]
 redirect_urls = [
-  "https://code-block.vercel.app/api/auth/callback"
+  "https://code-block-wheat.vercel.app/api/auth/callback"
 ]
 
 [webhooks]

@@ -5,7 +5,7 @@ const shopify = new Shopify.Shopify({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET,
   scopes: ['read_checkouts', 'write_checkouts'],
-  hostName: process.env.HOST?.replace('https://', '') || 'code-block.vercel.app',
+  hostName: process.env.HOST?.replace('https://', '') || 'code-block-wheat.vercel.app',
   isEmbeddedApp: true,
   apiVersion: '2024-10',
 });
