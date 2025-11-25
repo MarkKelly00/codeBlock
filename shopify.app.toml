@@ -1,21 +1,54 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-name = "sale-discount-lock"
+name = "Sale Discount Lock"
 client_id = "" # Will be filled by shopify app deploy
-application_url = "https://example.com" # Update with your app URL
+handle = "sale-discount-lock"
+
+# App URLs - Update these with your production domain
+application_url = "https://sale-discount-lock.fly.dev"
 embedded = true
 
 [access_scopes]
-# Add the scopes your app needs
+# Minimal scopes needed for checkout extension and billing
+scopes = "read_checkouts,write_checkouts"
 
 [auth]
 redirect_urls = [
-  "https://example.com/auth/callback"
+  "https://sale-discount-lock.fly.dev/api/auth/callback"
 ]
 
 [webhooks]
-api_version = "2025-10"
+api_version = "2025-01"
+
+  # GDPR Compliance Webhooks (Required for App Store)
+  [[webhooks.subscriptions]]
+  topics = ["customers/data_request"]
+  uri = "/api/webhooks/customers/data_request"
+
+  [[webhooks.subscriptions]]
+  topics = ["customers/redact"]
+  uri = "/api/webhooks/customers/redact"
+
+  [[webhooks.subscriptions]]
+  topics = ["shop/redact"]
+  uri = "/api/webhooks/shop/redact"
+
+  # App lifecycle webhooks
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "/api/webhooks/app/uninstalled"
 
 [pos]
 embedded = false
 
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = ""
+
+# App Store Listing Information (for reference)
+[app_store]
+# These are configured in Partner Dashboard, not here
+# App name: Sale Discount Lock
+# Tagline: Block discount codes during sales, keep gift cards working
+# Category: Checkout
+# Pricing: $2.99-$4.99/month with 14-day trial

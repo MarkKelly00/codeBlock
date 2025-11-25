@@ -1,214 +1,160 @@
-# Sale Discount Lock - Shopify Checkout UI Extension
+# Sale Discount Lock
 
-A custom Shopify app that provides a Checkout UI Extension for managing discount code availability during sales. When Sale Mode is enabled, the extension automatically removes discount codes while keeping gift cards fully functional.
+> A Shopify App Store app that blocks discount codes during sales while keeping gift cards active.
 
-## Features
+[![Shopify App Store](https://img.shields.io/badge/Shopify-App%20Store-green)](https://apps.shopify.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-### ✅ Core Functionality
-- **Automatic Discount Code Removal**: Removes any applied discount codes when Sale Mode is ON
-- **Gift Card Preservation**: Never touches gift cards - they continue to work normally
-- **Clear Messaging**: Shows configurable banner to inform customers
-- **Easy Toggle**: Merchants control via Checkout Editor settings (no code deploy needed)
+## 🎯 What It Does
 
-### 🛡️ Robust Error Handling
-- Gracefully handles accelerated checkouts (Apple Pay, Google Pay)
-- Checks `canUpdateDiscountCodes` instruction before attempting removal
-- Catches and logs errors without breaking checkout experience
-- Best-effort approach when permissions are restricted
+**Sale Discount Lock** is a Shopify checkout extension that helps merchants protect their profit margins during sales events:
 
-## Installation
+- **🔒 Block Discount Codes**: Automatically removes discount codes when Sale Mode is enabled
+- **🎁 Preserve Gift Cards**: Gift cards always work, regardless of Sale Mode
+- **💬 Custom Messaging**: Show customers a customizable banner explaining why discounts are disabled
+- **⚡ One-Click Toggle**: Enable/disable Sale Mode instantly from the Checkout Editor
 
-### Prerequisites
+## 📋 Features
+
+| Feature | Description |
+|---------|-------------|
+| Automatic Blocking | Instantly removes any applied discount codes |
+| Gift Card Support | Never affects gift cards - they always work |
+| Custom Banner | Configurable message shown to customers |
+| Easy Toggle | No code deploy needed - toggle in Checkout Editor |
+| Multiple Targets | Works in order summary and as a placeable block |
+
+## 💰 Pricing
+
+| Plan | Price | Features |
+|------|-------|----------|
+| **Basic** | $2.99/month | Full discount blocking, custom messaging, email support |
+| **Pro** | $4.99/month | Everything in Basic + priority support, analytics |
+
+All plans include a **14-day free trial**.
+
+## 🚀 Installation
+
+### For Merchants
+
+1. Install from the [Shopify App Store](#)
+2. Go to **Settings → Checkout → Customize**
+3. Add "Sale Discount Lock" from the Apps section
+4. Enable Sale Mode and customize your message
+5. Save and publish!
+
+### For Developers
+
+#### Prerequisites
+
+- Node.js 18+
 - Shopify Partner account
-- Shopify CLI installed (`npm install -g @shopify/cli@latest`)
-- A development store for testing
+- Shopify CLI (`npm install -g @shopify/cli`)
 
-### Step 1: Clone and Install
+#### Setup
 
 ```bash
-cd sale-discount-lock
+# Clone the repository
+git clone https://github.com/MarkKelly00/codeBlock.git
+cd codeBlock
+
+# Install dependencies
 npm install
-```
+cd web && npm install && cd ..
 
-### Step 2: Connect to Your Partner App
-
-```bash
+# Link to your Shopify app
 shopify app link
-```
 
-Follow prompts to create or select an app in your Partner Dashboard.
-
-### Step 3: Local Development
-
-```bash
+# Start development
 shopify app dev
 ```
 
-This will:
-1. Start a local development server
-2. Generate a preview URL for testing
-3. Allow you to test in a development store checkout
+#### Deployment
 
-### Step 4: Test in Checkout
-
-1. Add items to cart in your development store
-2. Go to checkout
-3. The extension will be visible in the Checkout Editor
-4. Toggle "Enable Sale Mode" in the extension settings panel
-
-### Step 5: Deploy
-
-When ready for production:
+The app is configured for deployment on [Fly.io](https://fly.io):
 
 ```bash
-shopify app deploy
+# Install Fly CLI
+curl -L https://fly.io/install.sh | sh
+
+# Login to Fly
+fly auth login
+
+# Deploy
+fly deploy
 ```
 
-Then install the app on your store through the Partner Dashboard.
+## 📁 Project Structure
 
-## Configuration
+```
+sale-discount-lock/
+├── extensions/
+│   └── checkout-ui/
+│       ├── Extension.jsx    # Checkout UI extension
+│       ├── package.json
+│       └── shopify.extension.toml
+├── web/
+│   ├── index.js             # Express server (OAuth, webhooks, billing)
+│   └── package.json
+├── shopify.app.toml         # Shopify app configuration
+├── fly.toml                 # Fly.io deployment config
+├── Dockerfile
+└── package.json
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Copy `env.example` to `.env` and fill in your credentials:
+
+```env
+SHOPIFY_API_KEY=your_api_key
+SHOPIFY_API_SECRET=your_api_secret
+HOST=https://your-app-domain.com
+```
 
 ### Extension Settings
 
-Merchants configure the extension in the Checkout Editor with these settings:
+Merchants configure these in the Checkout Editor:
 
-| Setting | Type | Description | Default |
-|---------|------|-------------|---------|
-| **Enable Sale Mode** | Boolean | Toggles discount code blocking ON/OFF | `false` |
-| **Sale banner message** | Text | Custom message shown to customers | "Sitewide sale is active — discount codes are disabled. Gift cards still apply." |
+| Setting | Type | Description |
+|---------|------|-------------|
+| Enable Sale Mode | Boolean | Toggle discount blocking on/off |
+| Sale banner message | Text | Custom message shown to customers |
 
-### Extension Targets
+## 🔐 Security & Compliance
 
-The extension uses two targets for maximum flexibility:
+- **GDPR Compliant**: Implements all required compliance webhooks
+- **No Customer Data**: Extension doesn't collect or store customer data
+- **Secure Auth**: Uses Shopify OAuth and session tokens
+- **Minimal Scopes**: Only requests necessary permissions
 
-1. **`purchase.checkout.block.render`**: Merchants can place the banner anywhere in checkout via the Checkout Editor
-2. **`purchase.checkout.reductions.render-after`**: Automatically shows after the discount/gift card form in the order summary
+## 📚 Documentation
 
-## How It Works
+- [Setup Guide](SETUP.md)
+- [Merchant Guide](MERCHANT_GUIDE.md)
+- [Limitations](LIMITATIONS.md)
+- [Privacy Policy](/privacy)
+- [Terms of Service](/terms)
 
-### When Sale Mode is ON:
+## 🤝 Support
 
-```mermaid
-graph TD
-    A[Customer adds discount code] --> B{Sale Mode ON?}
-    B -->|Yes| C[Extension detects code]
-    C --> D{Can update codes?}
-    D -->|Yes| E[Remove discount code]
-    D -->|No| F[Skip removal, log]
-    E --> G[Show banner message]
-    F --> G
-    B -->|No| H[Discount applies normally]
-```
+- **Email**: support@codeblock.app
+- **Issues**: [GitHub Issues](https://github.com/MarkKelly00/codeBlock/issues)
 
-### When Sale Mode is OFF:
-- Extension does nothing
-- All discount codes work normally
-- Banner is hidden
+## 📄 License
 
-### Gift Cards:
-- **ALWAYS work** regardless of Sale Mode
-- Extension never calls `applyGiftCardChange`
+MIT License - see [LICENSE](LICENSE) for details.
 
-## Technical Details
-
-### Architecture
-
-- **Framework**: Preact (included with `@shopify/ui-extensions`)
-- **API Version**: 2025-10
-- **Components**: Polaris Checkout UI web components (`<s-banner>`, `<s-text>`)
-- **State Management**: Global `shopify` object signals (`.value` property, `.subscribe()` method)
-
-### Key Implementation Notes
-
-#### 2025-10 API Patterns
-The extension uses the latest Checkout UI Extensions patterns:
-
-```javascript
-// Settings access (no useApi() needed)
-const settings = shopify.settings.value;
-
-// Discount codes subscription
-shopify.discountCodes.subscribe((codes) => {
-  // React to changes
-});
-
-// Remove discount code
-await shopify.applyDiscountCodeChange({
-  type: "removeDiscountCode",
-  code: discountCode.code
-});
-```
-
-#### Error Handling
-
-```javascript
-// Always check instructions first
-if (!shopify.instructions.value?.discounts?.canUpdateDiscountCodes) {
-  return; // Cannot update, skip gracefully
-}
-
-// Catch errors for accelerated checkout scenarios
-try {
-  await shopify.applyDiscountCodeChange({ ... });
-} catch (e) {
-  console.log('Skipped:', e); // Log but don't break
-}
-```
-
-## Limitations & Considerations
-
-### Platform Limitations
-1. **Cannot hide the discount/gift card field**: Checkout UI Extensions cannot remove core checkout UI elements
-2. **Accelerated checkouts**: `applyDiscountCodeChange` may not work in Apple Pay, Google Pay, Shop Pay flows
-3. **Best-effort removal**: Extension attempts removal but cannot guarantee it in all scenarios
-
-### Recommended Best Practices
-For complete enforcement, merchants should also:
-1. Configure discount combinability rules in Shopify Admin
-2. Set up automatic discounts vs code discount rules
-3. Use this extension as an additional layer of protection
-
-### Security Considerations
-- Extension runs client-side in checkout
-- Uses Shopify's standard API methods
-- No external network calls needed
-- No sensitive data handling
-
-## Troubleshooting
-
-### Discount codes aren't being removed
-**Check:**
-- Is Sale Mode enabled in Checkout Editor settings?
-- Are you testing with a regular checkout (not Apple Pay/Google Pay)?
-- Check browser console for error logs
-
-### Banner not showing
-**Check:**
-- Is Sale Mode enabled?
-- Is the extension activated in the Checkout Editor?
-- Try placing the block target in a visible location
-
-### Development store issues
-**Check:**
-- Is your store in development mode?
-- Have you saved the extension in the Checkout Editor?
-- Try `shopify app dev --reset` to clear cache
-
-## Support
-
-For issues related to:
-- **Shopify CLI**: See [Shopify CLI documentation](https://shopify.dev/docs/apps/tools/cli)
-- **Checkout UI Extensions**: See [Checkout UI Extensions reference](https://shopify.dev/docs/api/checkout-ui-extensions)
-- **This app**: Open an issue in the repository
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Credits
+## 🙏 Credits
 
 Built with:
-- [Shopify Checkout UI Extensions](https://shopify.dev/docs/api/checkout-ui-extensions)
-- [Polaris Design System](https://polaris.shopify.com/)
-- Following [Shopify's UI/UX best practices](https://shopify.dev/docs/apps/checkout/best-practices)
+- [Shopify CLI](https://shopify.dev/docs/apps/tools/cli)
+- [Checkout UI Extensions](https://shopify.dev/docs/api/checkout-ui-extensions)
+- [Shopify App Express](https://github.com/Shopify/shopify-app-js)
+- [Fly.io](https://fly.io)
 
+---
+
+Made with ❤️ by [Mark Kelly](https://github.com/MarkKelly00)

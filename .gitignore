@@ -1,45 +1,51 @@
 # Dependencies
 node_modules/
-.pnp
-.pnp.js
+web/node_modules/
+extensions/*/node_modules/
 
-# Testing
-coverage/
-
-# Production
-build/
+# Build outputs
 dist/
+build/
+.output/
 
-# Shopify
-.shopify/
-*.local
-
-# Environment
+# Environment files
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
+# Database
+*.sqlite
+*.db
+database.sqlite
 
-# OS
-.DS_Store
-Thumbs.db
+# Shopify CLI
+.shopify/
 
-# Editor
-.vscode/
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
 
-# Misc
-*.log
-.cache
+# OS files
+.DS_Store
+Thumbs.db
 
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+coverage/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Lock files (keep package-lock.json)
+yarn.lock
+pnpm-lock.yaml
