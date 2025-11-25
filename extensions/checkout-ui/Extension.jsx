@@ -1,5 +1,4 @@
-import '@shopify/ui-extensions/preact';
-import { render } from 'preact';
+import { extension, Banner, Text } from '@shopify/ui-extensions/checkout';
 
 /**
  * Sale Discount Lock Extension
@@ -10,24 +9,20 @@ import { render } from 'preact';
  * - Does NOT touch gift cards
  */
 
-// Export the extension entry point
-export default function extension() {
-  render(<Extension />, document.body);
-}
+export default extension('purchase.checkout.block.render', (root, api) => {
+  const { settings, discountCodes, applyDiscountCodeChange, instructions } = api;
 
-function Extension() {
-  // Get settings from Shopify
-  const settings = shopify.settings.current || {};
-  const saleEnabled = !!settings.sale_mode_enabled;
-  const message = settings.sale_message || 
+  // Get initial settings
+  let saleEnabled = settings.current?.sale_mode_enabled || false;
+  let message = settings.current?.sale_message || 
     "Sitewide sale is active — discount codes are disabled. Gift cards still apply.";
 
   // Helper function to remove discount codes
   const removeAllCodes = async (codes) => {
     try {
       // Check if we're allowed to update discount codes
-      const instructions = shopify.instructions.current;
-      if (!instructions?.discounts?.canUpdateDiscountCodes) {
+      const currentInstructions = instructions?.current;
+      if (!currentInstructions?.discounts?.canUpdateDiscountCodes) {
         console.log('[Sale Discount Lock] Cannot update discount codes - instructions do not allow it');
         return;
       }
@@ -35,7 +30,7 @@ function Extension() {
       // Remove each discount code (not gift cards)
       for (const discountCode of codes || []) {
         try {
-          await shopify.applyDiscountCodeChange({
+          await applyDiscountCodeChange({
             type: "removeDiscountCode",
             code: discountCode.code,
           });
@@ -49,39 +44,59 @@ function Extension() {
     }
   };
 
+  // Create the banner component
+  const banner = root.createComponent(Banner, { status: 'info' });
+  const textComponent = root.createComponent(Text, {}, message);
+  banner.appendChild(textComponent);
+
+  // Function to update UI based on settings
+  const updateUI = () => {
+    if (saleEnabled) {
+      if (!banner.parent) {
+        root.appendChild(banner);
+      }
+      textComponent.replaceChildren(message);
+    } else {
+      if (banner.parent) {
+        root.removeChild(banner);
+      }
+    }
+  };
+
+  // Initial render
+  updateUI();
+
   // Subscribe to settings changes
-  shopify.settings.subscribe((newSettings) => {
-    // Re-render will happen automatically via Preact
-    console.log('[Sale Discount Lock] Settings updated:', newSettings);
+  settings.subscribe((newSettings) => {
+    saleEnabled = newSettings?.sale_mode_enabled || false;
+    message = newSettings?.sale_message || 
+      "Sitewide sale is active — discount codes are disabled. Gift cards still apply.";
+    
+    updateUI();
+
+    // If sale mode just got enabled, remove existing codes
+    if (saleEnabled) {
+      const currentCodes = discountCodes.current || [];
+      if (currentCodes.length > 0) {
+        removeAllCodes(currentCodes);
+      }
+    }
   });
 
   // Subscribe to discount code changes and remove them when sale mode is on
+  discountCodes.subscribe((codes) => {
+    if (saleEnabled && codes && codes.length > 0) {
+      removeAllCodes(codes);
+    }
+  });
+
+  // Initial check for existing codes
   if (saleEnabled) {
-    // Check for existing codes on load
-    const currentCodes = shopify.discountCodes.current || [];
+    const currentCodes = discountCodes.current || [];
     if (currentCodes.length > 0) {
       removeAllCodes(currentCodes);
     }
-
-    // Subscribe to new codes being added
-    shopify.discountCodes.subscribe((codes) => {
-      if (codes && codes.length > 0) {
-        removeAllCodes(codes);
-      }
-    });
   }
 
-  console.log('[Sale Discount Lock] Extension rendered, saleEnabled:', saleEnabled);
-
-  // Don't render anything if sale mode is off
-  if (!saleEnabled) {
-    return null;
-  }
-
-  // Render the banner using Shopify's web components
-  return (
-    <s-banner status="info">
-      <s-text>{message}</s-text>
-    </s-banner>
-  );
-}
+  console.log('[Sale Discount Lock] Extension initialized, saleEnabled:', saleEnabled);
+});
