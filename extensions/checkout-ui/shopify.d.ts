@@ -1,0 +1,9 @@
+import '@shopify/ui-extensions';
+
+//@ts-ignore
+declare module './Extension.jsx' {
+  const shopify: 
+    import('@shopify/ui-extensions/purchase.checkout.block.render').Api |
+    import('@shopify/ui-extensions/purchase.checkout.reductions.render-after').Api;
+  const globalThis: { shopify: typeof shopify };
+}

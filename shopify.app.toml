@@ -1,0 +1,21 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+name = "sale-discount-lock"
+client_id = "" # Will be filled by shopify app deploy
+application_url = "https://example.com" # Update with your app URL
+embedded = true
+
+[access_scopes]
+# Add the scopes your app needs
+
+[auth]
+redirect_urls = [
+  "https://example.com/auth/callback"
+]
+
+[webhooks]
+api_version = "2025-10"
+
+[pos]
+embedded = false
+

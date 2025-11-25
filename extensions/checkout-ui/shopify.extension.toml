@@ -1,0 +1,38 @@
+api_version = "2025-10"
+
+[[extensions]]
+uid = "fddfc370-27c7-c30f-4ee0-a927194e2accadefd40c"
+type = "ui_extension"
+name = "Sale Discount Lock"
+handle = "checkout-ui"
+
+# Target 1: Merchant can place anywhere via Checkout Editor
+[[extensions.targeting]]
+target = "purchase.checkout.block.render"
+module = "./Extension.jsx"
+
+# Target 2: Show right after discount form in order summary
+[[extensions.targeting]]
+target = "purchase.checkout.reductions.render-after"
+module = "./Extension.jsx"
+
+[extensions.capabilities]
+api_access = false
+
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "sale_mode_enabled"
+type = "boolean"
+name = "Enable Sale Mode (disable discount codes)"
+description = "When enabled, all discount codes are removed/blocked. Gift cards still apply."
+
+[[extensions.settings.fields]]
+key = "sale_message"
+type = "single_line_text_field"
+name = "Sale banner message"
+description = "Message shown to customers when sale mode is active"
+
+[[extensions.settings.fields.validations]]
+name = "max"
+value = "200"
+

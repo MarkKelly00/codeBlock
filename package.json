@@ -1,0 +1,21 @@
+{
+  "name": "sale-discount-lock",
+  "version": "1.0.0",
+  "description": "Shopify checkout extension that blocks discount codes during sale mode while preserving gift card functionality",
+  "scripts": {
+    "dev": "shopify app dev",
+    "build": "shopify app build",
+    "deploy": "shopify app deploy",
+    "generate": "shopify app generate"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@shopify/ui-extensions": "^2025.10.0",
+    "preact": "^10.10.0",
+    "@preact/signals": "^2.3.0"
+  },
+  "devDependencies": {
+    "@shopify/cli": "^3.52.0"
+  }
+}
