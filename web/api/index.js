@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 // Lazy initialization of Shopify API (only when needed for OAuth)
 let shopifyInstance = null;
 
@@ -14,6 +16,44 @@ function getShopify() {
     });
   }
   return shopifyInstance;
+}
+
+// Verify Shopify webhook HMAC signature
+function verifyWebhookHmac(req) {
+  const hmacHeader = req.headers['x-shopify-hmac-sha256'];
+  
+  // If no HMAC header, validation fails
+  if (!hmacHeader) {
+    return false;
+  }
+  
+  const secret = process.env.SHOPIFY_API_SECRET;
+  if (!secret) {
+    console.error('[Webhook] SHOPIFY_API_SECRET not configured');
+    return false;
+  }
+  
+  // Get the raw body - Vercel provides it as req.body for JSON
+  let body = req.body;
+  if (typeof body === 'object') {
+    body = JSON.stringify(body);
+  }
+  
+  // Calculate HMAC
+  const calculatedHmac = crypto
+    .createHmac('sha256', secret)
+    .update(body, 'utf8')
+    .digest('base64');
+  
+  // Compare HMACs using timing-safe comparison
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(hmacHeader),
+      Buffer.from(calculatedHmac)
+    );
+  } catch (e) {
+    return false;
+  }
 }
 
 // Billing plans configuration
@@ -95,23 +135,58 @@ export default async function handler(req, res) {
       }
     }
 
-    // GDPR Webhooks
-    if (path === '/api/webhooks/customers/data_request') {
-      console.log('[GDPR] Customer data request received');
+    // Main webhooks endpoint (handles all compliance webhooks)
+    if (path === '/api/webhooks') {
+      // Verify HMAC signature
+      if (!verifyWebhookHmac(req)) {
+        console.log('[Webhook] HMAC validation failed - returning 401');
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
+      // Get the webhook topic from headers
+      const topic = req.headers['x-shopify-topic'];
+      console.log(`[Webhook] Received webhook: ${topic}`);
+      
+      // Handle different topics
+      switch (topic) {
+        case 'customers/data_request':
+          console.log('[GDPR] Customer data request received');
+          // App doesn't store customer data, so nothing to return
+          break;
+        case 'customers/redact':
+          console.log('[GDPR] Customer redact request received');
+          // App doesn't store customer data, so nothing to delete
+          break;
+        case 'shop/redact':
+          console.log('[GDPR] Shop redact request received');
+          // Clean up any shop data (we don't store any)
+          break;
+        default:
+          console.log(`[Webhook] Unknown topic: ${topic}`);
+      }
+      
       return res.status(200).json({ success: true });
     }
 
-    if (path === '/api/webhooks/customers/redact') {
-      console.log('[GDPR] Customer redact request received');
-      return res.status(200).json({ success: true });
-    }
-
-    if (path === '/api/webhooks/shop/redact') {
-      console.log('[GDPR] Shop redact request received');
+    // Legacy webhook endpoints (with HMAC validation)
+    if (path === '/api/webhooks/customers/data_request' || 
+        path === '/api/webhooks/customers/redact' || 
+        path === '/api/webhooks/shop/redact') {
+      // Verify HMAC signature
+      if (!verifyWebhookHmac(req)) {
+        console.log('[Webhook] HMAC validation failed - returning 401');
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      console.log(`[GDPR] Webhook received at ${path}`);
       return res.status(200).json({ success: true });
     }
 
     if (path === '/api/webhooks/app/uninstalled') {
+      // Verify HMAC signature
+      if (!verifyWebhookHmac(req)) {
+        console.log('[Webhook] HMAC validation failed - returning 401');
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
       console.log('[Webhook] App uninstalled');
       return res.status(200).json({ success: true });
     }
