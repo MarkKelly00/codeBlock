@@ -1,7 +1,7 @@
 api_version = "2025-01"
 
 [[extensions]]
-uid = "code-blocker-pro-checkout-ui"
+uid = "sale-discount-lock-checkout-ui"
 type = "ui_extension"
 name = "Code Blocker Pro"
 handle = "checkout-ui"
