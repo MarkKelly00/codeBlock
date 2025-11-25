@@ -1,9 +1,9 @@
 api_version = "2025-01"
 
 [[extensions]]
-uid = "sale-discount-lock-checkout-ui"
+uid = "code-blocker-pro-checkout-ui"
 type = "ui_extension"
-name = "Sale Discount Lock"
+name = "Code Blocker Pro"
 handle = "checkout-ui"
 
 # Target 1: Merchant can place anywhere via Checkout Editor

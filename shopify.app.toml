@@ -1,8 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-name = "Sale Discount Lock"
+name = "Code Blocker Pro"
 client_id = "" # Will be filled by shopify app deploy
-handle = "sale-discount-lock"
+handle = "code-blocker-pro"
 
 # App URLs - Using Vercel deployment
 application_url = "https://code-block-wheat.vercel.app"
