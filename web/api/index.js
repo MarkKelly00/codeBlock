@@ -1,14 +1,20 @@
-import Shopify from '@shopify/shopify-api';
+// Lazy initialization of Shopify API (only when needed for OAuth)
+let shopifyInstance = null;
 
-// Initialize Shopify API
-const shopify = new Shopify.Shopify({
-  apiKey: process.env.SHOPIFY_API_KEY,
-  apiSecretKey: process.env.SHOPIFY_API_SECRET,
-  scopes: ['read_checkouts', 'write_checkouts'],
-  hostName: process.env.HOST?.replace('https://', '') || 'code-block-wheat.vercel.app',
-  isEmbeddedApp: true,
-  apiVersion: '2024-10',
-});
+function getShopify() {
+  if (!shopifyInstance) {
+    const Shopify = require('@shopify/shopify-api').default;
+    shopifyInstance = new Shopify.Shopify({
+      apiKey: process.env.SHOPIFY_API_KEY,
+      apiSecretKey: process.env.SHOPIFY_API_SECRET,
+      scopes: ['read_checkouts', 'write_checkouts'],
+      hostName: process.env.HOST?.replace('https://', '') || 'code-block-wheat.vercel.app',
+      isEmbeddedApp: true,
+      apiVersion: '2024-10',
+    });
+  }
+  return shopifyInstance;
+}
 
 // Billing plans configuration
 const BILLING_PLANS = {
@@ -27,85 +33,95 @@ const BILLING_PLANS = {
 };
 
 export default async function handler(req, res) {
-  const { method, url } = req;
-  const path = url.split('?')[0];
+  try {
+    const { method, url } = req;
+    const path = url ? url.split('?')[0] : '/';
 
-  // Health check
-  if (path === '/api/health' || path === '/health') {
-    return res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-  }
-
-  // Privacy Policy
-  if (path === '/privacy') {
-    return res.status(200).send(getPrivacyPolicy());
-  }
-
-  // Terms of Service
-  if (path === '/terms') {
-    return res.status(200).send(getTermsOfService());
-  }
-
-  // App Home
-  if (path === '/' || path === '/api' || path === '/api/index') {
-    return res.status(200).send(getAppHome());
-  }
-
-  // OAuth Start
-  if (path === '/api/auth') {
-    const shop = req.query.shop;
-    if (!shop) {
-      return res.status(400).json({ error: 'Missing shop parameter' });
+    // Health check
+    if (path === '/api/health' || path === '/health') {
+      return res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
     }
-    
-    const authUrl = await shopify.auth.begin({
-      shop,
-      callbackPath: '/api/auth/callback',
-      isOnline: false,
-    });
-    
-    return res.redirect(authUrl);
-  }
 
-  // OAuth Callback
-  if (path === '/api/auth/callback') {
-    try {
-      const callback = await shopify.auth.callback({
-        rawRequest: req,
-        rawResponse: res,
+    // Privacy Policy
+    if (path === '/privacy') {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(200).send(getPrivacyPolicy());
+    }
+
+    // Terms of Service
+    if (path === '/terms') {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(200).send(getTermsOfService());
+    }
+
+    // App Home
+    if (path === '/' || path === '/api' || path === '/api/index') {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(200).send(getAppHome());
+    }
+
+    // OAuth Start
+    if (path === '/api/auth') {
+      const shop = req.query.shop;
+      if (!shop) {
+        return res.status(400).json({ error: 'Missing shop parameter' });
+      }
+      
+      const shopify = getShopify();
+      const authUrl = await shopify.auth.begin({
+        shop,
+        callbackPath: '/api/auth/callback',
+        isOnline: false,
       });
       
-      // Redirect to app in admin
-      const shop = callback.session.shop;
-      return res.redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}`);
-    } catch (error) {
-      console.error('OAuth callback error:', error);
-      return res.status(500).json({ error: 'OAuth failed' });
+      return res.redirect(authUrl);
     }
-  }
 
-  // GDPR Webhooks
-  if (path === '/api/webhooks/customers/data_request') {
-    console.log('[GDPR] Customer data request received');
-    return res.status(200).json({ success: true });
-  }
+    // OAuth Callback
+    if (path === '/api/auth/callback') {
+      try {
+        const shopify = getShopify();
+        const callback = await shopify.auth.callback({
+          rawRequest: req,
+          rawResponse: res,
+        });
+        
+        // Redirect to app in admin
+        const shop = callback.session.shop;
+        return res.redirect(`https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}`);
+      } catch (error) {
+        console.error('OAuth callback error:', error);
+        return res.status(500).json({ error: 'OAuth failed' });
+      }
+    }
 
-  if (path === '/api/webhooks/customers/redact') {
-    console.log('[GDPR] Customer redact request received');
-    return res.status(200).json({ success: true });
-  }
+    // GDPR Webhooks
+    if (path === '/api/webhooks/customers/data_request') {
+      console.log('[GDPR] Customer data request received');
+      return res.status(200).json({ success: true });
+    }
 
-  if (path === '/api/webhooks/shop/redact') {
-    console.log('[GDPR] Shop redact request received');
-    return res.status(200).json({ success: true });
-  }
+    if (path === '/api/webhooks/customers/redact') {
+      console.log('[GDPR] Customer redact request received');
+      return res.status(200).json({ success: true });
+    }
 
-  if (path === '/api/webhooks/app/uninstalled') {
-    console.log('[Webhook] App uninstalled');
-    return res.status(200).json({ success: true });
-  }
+    if (path === '/api/webhooks/shop/redact') {
+      console.log('[GDPR] Shop redact request received');
+      return res.status(200).json({ success: true });
+    }
 
-  // Default 404
-  return res.status(404).json({ error: 'Not found' });
+    if (path === '/api/webhooks/app/uninstalled') {
+      console.log('[Webhook] App uninstalled');
+      return res.status(200).json({ success: true });
+    }
+
+    // Default 404
+    return res.status(404).json({ error: 'Not found' });
+  } catch (error) {
+    console.error('Handler error:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
 }
 
 function getPrivacyPolicy() {
